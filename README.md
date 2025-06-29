@@ -4,6 +4,8 @@ Foils timesheet records in a period.
 Core functionalities.
 ### Timesheet registration
 Every day, a new timesheet begins. Records will be saved in the in-out format and their registration won't be limited.
+### Timesheet view
+Select a timesheet or get current day timesheet records.
 ### Period list
 Every month, a period ends. Every daily timesheet will be listed in their selected period.
 ## Domain
