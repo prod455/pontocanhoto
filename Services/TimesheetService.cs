@@ -29,13 +29,22 @@ namespace Pontocanhoto.Services
         public TimesheetModel? GetTimesheetByDate(DateTime? date = null)
         {
             if (date == null)
-                date = DateTime.Now;
+                date = GetDate();
             return _pontocanhotoDbContext.Timesheets
                 .Include(timesheet => timesheet.Period)
                 .Include(timesheet => timesheet.Records)
                 .Where(timesheet => timesheet.Date.Date == date.Value.Date)
                 .ToList()
                 .FirstOrDefault();
+        }
+
+        public DateTime GetDate()
+        {
+            return _pontocanhotoDbContext
+                .Database
+                .SqlQuery<DateTime>($"SELECT GETDATE()")
+                .AsEnumerable()
+                .First();
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Pontocanhoto.Application.Cli.Commands
         {
             try
             {
-                DateTime actualDate = DateTime.Now;
+                DateTime actualDate = _periodService.GetDate();
                 List<PeriodModel> periods = _periodService.GetPeriodsByStartEndDate(
                     new DateTime(actualDate.Year, 1, 1),
                     actualDate.AddYears(1).AddDays(-1)

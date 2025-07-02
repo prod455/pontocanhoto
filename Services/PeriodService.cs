@@ -44,5 +44,14 @@ namespace Pontocanhoto.Services
                 .Where(period => endDate == null || period.EndDate.Date <= endDate.Value.Date)
                 .ToList();
         }
+
+        public DateTime GetDate()
+        {
+            return _pontocanhotoDbContext
+                .Database
+                .SqlQuery<DateTime>($"SELECT GETDATE()")
+                .AsEnumerable()
+                .First();
+        }
     }
 }

@@ -22,7 +22,7 @@ namespace Pontocanhoto.Application.Cli.Commands
         {
             try
             {
-                DateTime actualDate = DateTime.Now;
+                DateTime actualDate = _periodService.GetDate();
                 DateTime startDate = new DateTime(actualDate.Year, actualDate.Month, 1);
                 DateTime endDate = startDate.AddMonths(1).AddDays(-1);
                 PeriodModel? periodDb = _periodService.GetPeriodByStartEndDate(startDate, endDate);

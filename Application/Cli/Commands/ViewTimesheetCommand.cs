@@ -20,9 +20,6 @@ namespace Pontocanhoto.Application.Cli.Commands
             {
                 TimesheetModel? timesheet = _timesheetService.GetTimesheetByDate(settings.Date) ?? throw new ApplicationException("Timesheet not found");
 
-                if (timesheet.Records.Count < 2)
-                    throw new ApplicationException("Not enough records to display (2)");
-
                 Grid grid = new Grid()
                     .Expand()
                     .AddColumn(new GridColumn().Centered())
@@ -37,16 +34,31 @@ namespace Pontocanhoto.Application.Cli.Commands
 
                 TimeSpan totalHours = TimeSpan.Zero;
 
+                DateTime actualTime = _timesheetService.GetDate();
+
                 for (int i = 0; i < timesheet.Records.Count; i += 2)
                 {
-                    grid.AddRow(
-                        $"{timesheet.Records[i].Time:t}",
-                        $"{(i + 1 < timesheet.Records.Count ? timesheet.Records[i + 1].Time.ToShortTimeString() : "[dim]--:--[/]")}"
-                    );
-                    totalHours += i + 1 < timesheet.Records.Count ? timesheet.Records[i + 1].Time.TimeOfDay - timesheet.Records[i].Time.TimeOfDay : TimeSpan.Zero;
+                    DateTime startTime = timesheet.Records[i].Time;
+                    string startTimeString = startTime.ToShortTimeString();
+
+                    if (i + 1 < timesheet.Records.Count)
+                    {
+                        DateTime endTime = timesheet.Records[i + 1].Time;
+                        grid.AddRow(startTimeString, timesheet.Records[i + 1].Time.ToShortTimeString());
+                        totalHours += endTime.TimeOfDay - startTime.TimeOfDay;
+                    }
+                    else
+                    {
+                        grid.AddRow(startTimeString, "[dim]--:--[/]");
+
+                        if (startTime.Date == actualTime.Date)
+                        {
+                            totalHours += actualTime.TimeOfDay - startTime.TimeOfDay;
+                        }
+                    }
                 }
 
-                panel.Header = new PanelHeader($"[yellow]Timesheet[/]: {timesheet.Date:d}\t[yellow]Elapsed time[/]: {totalHours}");
+                panel.Header = new PanelHeader($"[yellow]Timesheet[/]: {timesheet.Date:d} | [yellow]Elapsed time[/]: {totalHours:hh\\:mm\\:ss}");
 
                 AnsiConsole.Write(panel);
 
@@ -55,7 +67,7 @@ namespace Pontocanhoto.Application.Cli.Commands
             catch (Exception ex)
             {
                 AnsiConsole.WriteException(ex);
-                
+
                 return -1;
             }
         }
