@@ -29,12 +29,13 @@ namespace Pontocanhoto.Application.Cli.Commands
                     .AddColumn(new GridColumn().Centered());
 
                 Panel panel = new Panel(grid)
-                    .Header($"[yellow]Timesheet[/]: {timesheet.Date:D}")
                     .Border(BoxBorder.Rounded)
                     .Expand();
 
                 grid.AddRow("[yellow]In[/]", "[yellow]Out[/]");
                 grid.AddEmptyRow();
+
+                TimeSpan totalHours = TimeSpan.Zero;
 
                 for (int i = 0; i < timesheet.Records.Count; i += 2)
                 {
@@ -42,7 +43,10 @@ namespace Pontocanhoto.Application.Cli.Commands
                         $"{timesheet.Records[i].Time:t}",
                         $"{(i + 1 < timesheet.Records.Count ? timesheet.Records[i + 1].Time.ToShortTimeString() : "[dim]--:--[/]")}"
                     );
+                    totalHours += i + 1 < timesheet.Records.Count ? timesheet.Records[i + 1].Time.TimeOfDay - timesheet.Records[i].Time.TimeOfDay : TimeSpan.Zero;
                 }
+
+                panel.Header = new PanelHeader($"[yellow]Timesheet[/]: {timesheet.Date:d}\t[yellow]Elapsed time[/]: {totalHours}");
 
                 AnsiConsole.Write(panel);
 
