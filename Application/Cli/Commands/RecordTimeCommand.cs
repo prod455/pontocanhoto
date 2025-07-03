@@ -47,6 +47,7 @@ namespace Pontocanhoto.Application.Cli.Commands
                         EndDate = endDate,
                         Timesheet = timesheet
                     });
+                    timesheet.PeriodId = period.Id;
                     timesheet.Period = period;
                     _timesheetService.UpdateTimesheet(timesheet);
                     _recordService.AddRecord(new RecordModel()
