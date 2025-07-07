@@ -15,22 +15,20 @@ namespace Pontocanhoto
         {
             string connectionString = configuration.GetConnectionString("PontocanhotoDbConnection") ?? throw new ApplicationException("Missing PontocanhotoDbConnection configuration");
 
-            services.AddDbContext<PontocanhotoDbContext>(options =>
-            {
-                options.UseSqlServer(connectionString);
-
-                options.EnableDetailedErrors();
-                options.EnableSensitiveDataLogging();
-            });
-
             services.AddSingleton<CommandApp>(provider =>
             {
                 ServiceCollection serviceCollection = new ServiceCollection();
 
                 serviceCollection.AddDbContext<PontocanhotoDbContext>(options =>
                 {
-                    options.UseSqlServer(connectionString);
-
+                    options.UseSqlServer(connectionString, options =>
+                    {
+                        options.EnableRetryOnFailure(
+                            maxRetryCount: 5,
+                            maxRetryDelay: TimeSpan.FromSeconds(30),
+                            errorNumbersToAdd: null
+                        );
+                    });
                     options.EnableDetailedErrors();
                     options.EnableSensitiveDataLogging();
                 });
