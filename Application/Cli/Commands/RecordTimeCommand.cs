@@ -1,4 +1,5 @@
-﻿using Pontocanhoto.Domain;
+﻿using Partidoro.Application.Helpers;
+using Pontocanhoto.Domain;
 using Pontocanhoto.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -26,11 +27,11 @@ namespace Pontocanhoto.Application.Cli.Commands
                 TimesheetModel? timesheetDb = _timesheetService.GetTimesheetByDate();
                 if (timesheetDb != null)
                 {
-                    _recordService.AddRecord(new RecordModel()
+                    MethodHelper.Retry(() => _recordService.AddRecord(new RecordModel()
                     {
                         Time = actualDate,
                         TimesheetId = timesheetDb.Id
-                    });
+                    }));
                     AnsiConsole.Markup($"[yellow]Timesheet[/]: {timesheetDb.Date:D}\n[yellow]Record[/]: {actualDate:t}");
                 }
                 else
@@ -38,21 +39,31 @@ namespace Pontocanhoto.Application.Cli.Commands
                     DateTime startDate = new DateTime(actualDate.Year, actualDate.Month, 1);
                     DateTime endDate = startDate.AddMonths(1).AddDays(-1);
                     PeriodModel? periodDb = _periodService.GetPeriodByStartEndDate(startDate, endDate);
-                    periodDb ??= _periodService.AddPeriod(new PeriodModel
+
+                    if (periodDb == null)
                     {
-                        StartDate = startDate,
-                        EndDate = endDate
-                    });
-                    TimesheetModel timesheet = _timesheetService.AddTimesheet(new TimesheetModel()
+                        periodDb = new PeriodModel
+                        {
+                            StartDate = startDate,
+                            EndDate = endDate
+                        };
+                        MethodHelper.Retry(() => _periodService.AddPeriod(periodDb));
+                    }
+
+                    TimesheetModel timesheet = new TimesheetModel()
                     {
                         Date = actualDate,
                         Period = periodDb
-                    });
-                    _recordService.AddRecord(new RecordModel()
+                    };
+                    MethodHelper.Retry(() => _timesheetService.AddTimesheet(timesheet));
+
+                    RecordModel record = new RecordModel()
                     {
                         Time = actualDate,
                         TimesheetId = timesheet.Id
-                    });
+                    };
+                    MethodHelper.Retry(() => _recordService.AddRecord(record));
+
                     AnsiConsole.Markup($"[yellow]Timesheet[/]: {actualDate:D}\n[yellow]Record[/]: {actualDate:t}");
                 }
                 return 0;
