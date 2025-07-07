@@ -15,19 +15,11 @@ namespace Pontocanhoto.EntityFrameworkCore
             builder.Property(period => period.Id)
                 .ValueGeneratedOnAdd();
 
-            builder.Property(period => period.TimesheetId)
-                .IsRequired();
-
             builder.Property(period => period.StartDate)
                 .IsRequired();
 
             builder.Property(period => period.EndDate)
                 .IsRequired();
-
-            builder.HasOne(period => period.Timesheet)
-                .WithOne(timesheet => timesheet.Period)
-                .HasConstraintName("FK_Period_Timesheet_TimesheetId")
-                .HasForeignKey<PeriodModel>(period => period.TimesheetId);
         }
     }
 }

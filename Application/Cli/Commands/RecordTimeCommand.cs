@@ -23,37 +23,35 @@ namespace Pontocanhoto.Application.Cli.Commands
             try
             {
                 DateTime actualDate = _periodService.GetDate();
-                DateTime startDate = new DateTime(actualDate.Year, actualDate.Month, 1);
-                DateTime endDate = startDate.AddMonths(1).AddDays(-1);
-                PeriodModel? periodDb = _periodService.GetPeriodByStartEndDate(startDate, endDate);
-                if (periodDb != null)
+                TimesheetModel? timesheetDb = _timesheetService.GetTimesheetByDate();
+                if (timesheetDb != null)
                 {
                     _recordService.AddRecord(new RecordModel()
                     {
                         Time = actualDate,
-                        TimesheetId = periodDb.TimesheetId
+                        TimesheetId = timesheetDb.Id
                     });
-                    AnsiConsole.Markup($"[yellow]Timesheet[/]: {periodDb.Timesheet.Date:D}\n[yellow]Record[/]: {actualDate:t}");
+                    AnsiConsole.Markup($"[yellow]Timesheet[/]: {timesheetDb.Date:D}\n[yellow]Record[/]: {actualDate:t}");
                 }
                 else
                 {
-                    TimesheetModel timesheet = _timesheetService.AddTimesheet(new TimesheetModel()
-                    {
-                        Date = actualDate
-                    });
-                    PeriodModel period = _periodService.AddPeriod(new PeriodModel()
+                    DateTime startDate = new DateTime(actualDate.Year, actualDate.Month, 1);
+                    DateTime endDate = startDate.AddMonths(1).AddDays(-1);
+                    PeriodModel? periodDb = _periodService.GetPeriodByStartEndDate(startDate, endDate);
+                    periodDb ??= _periodService.AddPeriod(new PeriodModel
                     {
                         StartDate = startDate,
-                        EndDate = endDate,
-                        Timesheet = timesheet
+                        EndDate = endDate
                     });
-                    timesheet.PeriodId = period.Id;
-                    timesheet.Period = period;
-                    _timesheetService.UpdateTimesheet(timesheet);
+                    TimesheetModel timesheet = _timesheetService.AddTimesheet(new TimesheetModel()
+                    {
+                        Date = actualDate,
+                        Period = periodDb
+                    });
                     _recordService.AddRecord(new RecordModel()
                     {
                         Time = actualDate,
-                        TimesheetId = period.TimesheetId
+                        TimesheetId = timesheet.Id
                     });
                     AnsiConsole.Markup($"[yellow]Timesheet[/]: {actualDate:D}\n[yellow]Record[/]: {actualDate:t}");
                 }

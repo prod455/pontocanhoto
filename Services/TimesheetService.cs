@@ -42,9 +42,9 @@ namespace Pontocanhoto.Services
         {
             return _pontocanhotoDbContext
                 .Database
-                .SqlQuery<DateTime>($"SELECT GETDATE()")
+                .SqlQuery<DateTime>($"EXEC GetTimezoneDate")
                 .AsEnumerable()
-                .First();
+                .FirstOrDefault();
         }
     }
 }

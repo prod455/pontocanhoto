@@ -28,20 +28,20 @@ namespace Pontocanhoto.Services
 
         public PeriodModel? GetPeriodByStartEndDate(DateTime? startTime = null, DateTime? endDate = null)
         {
+            startTime ??= DateTime.Now;
+            endDate ??= DateTime.Now;
             return _pontocanhotoDbContext.Periods
-                .Include(period => period.Timesheet)
-                .Where(period => startTime == null || period.StartDate.Date >= startTime.Value.Date)
-                .Where(period => endDate == null || period.EndDate.Date <= endDate.Value.Date)
+                .Where(period => period.StartDate.Date >= startTime.Value.Date && period.EndDate.Date <= endDate.Value.Date)
                 .ToList()
                 .FirstOrDefault();
         }
 
         public List<PeriodModel> GetPeriodsByStartEndDate(DateTime? startTime = null, DateTime? endDate = null)
         {
+            startTime ??= DateTime.Now;
+            endDate ??= DateTime.Now;
             return _pontocanhotoDbContext.Periods
-                .Include(period => period.Timesheet)
-                .Where(period => startTime == null || period.StartDate.Date >= startTime.Value.Date)
-                .Where(period => endDate == null || period.EndDate.Date <= endDate.Value.Date)
+                .Where(period => period.StartDate.Date >= startTime.Value.Date && period.EndDate.Date <= endDate.Value.Date)
                 .ToList();
         }
 
@@ -49,9 +49,9 @@ namespace Pontocanhoto.Services
         {
             return _pontocanhotoDbContext
                 .Database
-                .SqlQuery<DateTime>($"SELECT GETDATE()")
+                .SqlQuery<DateTime>($"EXEC GetTimezoneDate")
                 .AsEnumerable()
-                .First();
+                .FirstOrDefault();
         }
     }
 }
