@@ -23,23 +23,39 @@ namespace Pontocanhoto.Application.Cli.Commands
         {
             try
             {
-                DateTime actualDate = _periodService.GetDate();
-                TimesheetModel? timesheetDb = _timesheetService.GetTimesheetByDate();
+                DateTime? actualDate = null;
+                MethodHelper.Retry(() =>
+                {
+                    actualDate = _periodService.GetDate();
+                });
+                if (actualDate == null)
+                {
+                    throw new ApplicationException("Unable to get system date");
+                }
+
+                TimesheetModel? timesheetDb = null;
+                MethodHelper.Retry(() =>
+                {
+                    timesheetDb = _timesheetService.GetTimesheetByDate(actualDate);
+                });
                 if (timesheetDb != null)
                 {
                     MethodHelper.Retry(() => _recordService.AddRecord(new RecordModel()
                     {
-                        Time = actualDate,
+                        Time = actualDate.Value,
                         TimesheetId = timesheetDb.Id
                     }));
                     AnsiConsole.Markup($"[yellow]Timesheet[/]: {timesheetDb.Date:D}\n[yellow]Record[/]: {actualDate:t}");
                 }
                 else
                 {
-                    DateTime startDate = new DateTime(actualDate.Year, actualDate.Month, 1);
+                    DateTime startDate = new DateTime(actualDate.Value.Year, actualDate.Value.Month, 1);
                     DateTime endDate = startDate.AddMonths(1).AddDays(-1);
-                    PeriodModel? periodDb = _periodService.GetPeriodByStartEndDate(startDate, endDate);
-
+                    PeriodModel? periodDb = null;
+                    MethodHelper.Retry(() =>
+                    {
+                        periodDb = _periodService.GetPeriodByStartEndDate(startDate, endDate);
+                    });
                     if (periodDb == null)
                     {
                         periodDb = new PeriodModel
@@ -52,14 +68,14 @@ namespace Pontocanhoto.Application.Cli.Commands
 
                     TimesheetModel timesheet = new TimesheetModel()
                     {
-                        Date = actualDate,
+                        Date = actualDate.Value,
                         Period = periodDb
                     };
                     MethodHelper.Retry(() => _timesheetService.AddTimesheet(timesheet));
 
                     RecordModel record = new RecordModel()
                     {
-                        Time = actualDate,
+                        Time = actualDate.Value,
                         TimesheetId = timesheet.Id
                     };
                     MethodHelper.Retry(() => _recordService.AddRecord(record));

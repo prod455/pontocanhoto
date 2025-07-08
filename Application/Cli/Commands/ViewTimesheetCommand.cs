@@ -1,4 +1,5 @@
-﻿using Pontocanhoto.Domain;
+﻿using Partidoro.Application.Helpers;
+using Pontocanhoto.Domain;
 using Pontocanhoto.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -18,7 +19,13 @@ namespace Pontocanhoto.Application.Cli.Commands
         {
             try
             {
-                TimesheetModel? timesheet = _timesheetService.GetTimesheetByDate(settings.Date) ?? throw new ApplicationException("Timesheet not found");
+                TimesheetModel? timesheet = null;
+                MethodHelper.Retry(() =>
+                {
+                    timesheet = _timesheetService.GetTimesheetByDate(settings.Date);
+                });
+                if (timesheet == null)
+                    throw new ApplicationException("Timesheet not found");
 
                 Grid grid = new Grid()
                     .Expand()

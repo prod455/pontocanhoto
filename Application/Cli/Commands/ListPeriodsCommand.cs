@@ -1,4 +1,5 @@
-﻿using Pontocanhoto.Domain;
+﻿using Partidoro.Application.Helpers;
+using Pontocanhoto.Domain;
 using Pontocanhoto.Services;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -18,11 +19,25 @@ namespace Pontocanhoto.Application.Cli.Commands
         {
             try
             {
-                DateTime actualDate = _periodService.GetDate();
-                List<PeriodModel> periods = _periodService.GetPeriodsByStartEndDate(
-                    new DateTime(actualDate.Year, 1, 1),
-                    actualDate.AddYears(1).AddDays(-1)
-                );
+                DateTime? actualDate = null;
+                MethodHelper.Retry(() =>
+                {
+                    actualDate = _periodService.GetDate();
+                });
+                if (actualDate == null)
+                {
+                    throw new ApplicationException("Unable to get system date");
+                }
+
+
+                List<PeriodModel> periods = new List<PeriodModel>();
+                MethodHelper.Retry(() =>
+                {
+                    periods = _periodService.GetPeriodsByStartEndDate(
+                        new DateTime(actualDate.Value.Year, 1, 1),
+                        actualDate.Value.AddYears(1).AddDays(-1)
+                    );
+                });
 
                 Grid grid = new Grid()
                     .Expand()
@@ -43,7 +58,12 @@ namespace Pontocanhoto.Application.Cli.Commands
                 }
 
                 AnsiConsole.Write(panel);
-                
+
+                if (periods.Count == 0)
+                {
+                    AnsiConsole.Write("[dim]Periods not found.[/]");
+                }
+
                 return 0;
             }
             catch (Exception ex)
