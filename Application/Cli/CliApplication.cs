@@ -14,15 +14,16 @@ namespace Pontocanhoto.Application.Cli
             {
                 config.AddBranch("period", config =>
                 {
-                    AddListPeriodsCommand(config);
+                    ListPeriodsCommand(config);
                 });
                 config.AddBranch("record", config =>
                 {
-                    AddRecordTimeCommand(config);
+                    RecordTimeCommand(config);
                 });
                 config.AddBranch("timesheet", config =>
                 {
                     ViewTimesheetCommand(config);
+                    UpdateTimesheetCommand(config);
                 });
             });
         }
@@ -32,19 +33,30 @@ namespace Pontocanhoto.Application.Cli
             _commandApp.Run(args);
         }
 
-        private void AddListPeriodsCommand(IConfigurator<ListPeriodsCommand.Settings> configurator)
+        #region Period
+        private void ListPeriodsCommand(IConfigurator<ListPeriodsCommand.Settings> configurator)
         {
             configurator.AddCommand<ListPeriodsCommand>("list");
         }
+        #endregion
 
-        private void AddRecordTimeCommand(IConfigurator<RecordTimeCommand.Settings> configurator)
+        #region Record
+        private void RecordTimeCommand(IConfigurator<RecordTimeCommand.Settings> configurator)
         {
             configurator.AddCommand<RecordTimeCommand>("time");
         }
+        #endregion
 
+        #region Timesheet
         private void ViewTimesheetCommand(IConfigurator<ViewTimesheetCommand.Settings> configurator)
         {
             configurator.AddCommand<ViewTimesheetCommand>("view");
         }
+
+        private void UpdateTimesheetCommand(IConfigurator<UpdateTimesheetCommand.Settings> configurator)
+        {
+            configurator.AddCommand<UpdateTimesheetCommand>("update");
+        }
+        #endregion
     }
 }
